@@ -2,6 +2,7 @@
 
 This repository contains beginner RTL design exercises written while learning digital electronics, Verilog, SystemVerilog and AMD Vivado.
 
+
 ## Repository structure
 
 - `combinational/design` — logic-gate, multiplexer, decoder, comparator and adder designs.
@@ -10,6 +11,7 @@ This repository contains beginner RTL design exercises written while learning di
 - `sequential/testbenches` — simulation files for the sequential designs.
 
 The files are organised by circuit type so that each design can be read alongside its corresponding testbench.
+
 
 
 ## Naming convention
