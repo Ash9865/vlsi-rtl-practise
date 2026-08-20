@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module traffic_light_controller(
+module seq_traffic_controller(
     input  logic clk,
     input  logic reset,
     output logic NS_G,
@@ -9,86 +9,115 @@ module traffic_light_controller(
     output logic EW_G,
     output logic EW_Y,
     output logic EW_R
-    );
+);
 
-    typedef enum logic [2:0] {
-        NS_GREEN,
-        NS_YELLOW,
-        ALL_RED_1,
-        EW_GREEN,
-        EW_YELLOW,
-        ALL_RED_2
-    } state_t;
+    logic [2:0] state;
+    logic [2:0] next_state;
+    integer counter;
 
-    state_t state, next_state;
-    logic [2:0] counter;
-
-    always_comb begin
-        next_state = state;
+    always_comb
+    begin
         case (state)
-            NS_GREEN:   next_state = NS_YELLOW;
-            NS_YELLOW:  next_state = ALL_RED_1;
-            ALL_RED_1:  next_state = EW_GREEN;
-            EW_GREEN:   next_state = EW_YELLOW;
-            EW_YELLOW:  next_state = ALL_RED_2;
-            ALL_RED_2:  next_state = NS_GREEN;
-            default:     next_state = NS_GREEN;
+            3'b000: next_state <= 3'b001;
+            3'b001: next_state <= 3'b010;
+            3'b010: next_state <= 3'b011;
+            3'b011: next_state <= 3'b100;
+            3'b100: next_state <= 3'b101;
+            3'b101: next_state <= 3'b000;
         endcase
     end
 
-    always_comb begin
-        NS_G = 1'b0;
-        NS_Y = 1'b0;
-        NS_R = 1'b0;
-        EW_G = 1'b0;
-        EW_Y = 1'b0;
-        EW_R = 1'b0;
-
+    always_comb
+    begin
         case (state)
-            NS_GREEN: begin
-                NS_G = 1'b1;
-                EW_R = 1'b1;
+
+            3'b000: begin
+                NS_G <= 1;
+                NS_Y <= 0;
+                NS_R <= 0;
+                EW_G <= 0;
+                EW_Y <= 0;
+                EW_R <= 1;
             end
-            NS_YELLOW: begin
-                NS_Y = 1'b1;
-                EW_R = 1'b1;
+
+            3'b001: begin
+                NS_G <= 0;
+                NS_Y <= 1;
+                NS_R <= 0;
+                EW_G <= 0;
+                EW_Y <= 0;
+                EW_R <= 1;
             end
-            ALL_RED_1, ALL_RED_2: begin
-                NS_R = 1'b1;
-                EW_R = 1'b1;
+
+            3'b010: begin
+                NS_G <= 0;
+                NS_Y <= 0;
+                NS_R <= 1;
+                EW_G <= 0;
+                EW_Y <= 0;
+                EW_R <= 1;
             end
-            EW_GREEN: begin
-                NS_R = 1'b1;
-                EW_G = 1'b1;
+
+            3'b011: begin
+                NS_G <= 0;
+                NS_Y <= 0;
+                NS_R <= 1;
+                EW_G <= 1;
+                EW_Y <= 0;
+                EW_R <= 0;
             end
-            EW_YELLOW: begin
-                NS_R = 1'b1;
-                EW_Y = 1'b1;
+
+            3'b100: begin
+                NS_G <= 0;
+                NS_Y <= 0;
+                NS_R <= 1;
+                EW_G <= 0;
+                EW_Y <= 1;
+                EW_R <= 0;
             end
-            default: begin
-                NS_R = 1'b1;
-                EW_R = 1'b1;
+
+            3'b101: begin
+                NS_G <= 0;
+                NS_Y <= 0;
+                NS_R <= 1;
+                EW_G <= 0;
+                EW_Y <= 0;
+                EW_R <= 1;
             end
+
         endcase
     end
 
-    always_ff @(posedge clk) begin
-        if (reset) begin
-            state   <= NS_GREEN;
-            counter <= 3'd0;
-        end else if ((state == NS_GREEN) || (state == EW_GREEN)) begin
-            if (counter == 3'd4) begin
-                state   <= next_state;
-                counter <= 3'd0;
-            end else begin
-                counter <= counter + 3'd1;
+    initial counter = 0;
+
+    always_ff @(posedge clk)
+    begin
+        if (reset)
+            state <= 3'b000;
+
+        else
+        begin
+            counter += 1;
+
+            if ((state == 3'b000) || (state == 3'b011))
+            begin
+                if (counter == 5)
+                begin
+                    counter = 0;
+                    state <= next_state;
+                end
             end
-        end else begin
-            if (counter == 3'd1) begin
-                state   <= next_state;
-                counter <= 3'd0;
-            end else begin
-                counter <= counter + 3'd1;
+
+            if ((state == 3'b001) ||
+                (state == 3'b100) ||
+                (state == 3'b010) ||
+                (state == 3'b101))
+            begin
+                if (counter == 2)
+                begin
+                    counter = 0;
+                    state <= next_state;
+                end
             end
         end
     end
