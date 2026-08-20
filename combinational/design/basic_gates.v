@@ -8,3 +8,4 @@ module basic_gates(
     assign y1= a&b;
     assign y2=a|b;
 endmodule
+
